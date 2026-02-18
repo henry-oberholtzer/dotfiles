@@ -1,0 +1,249 @@
+directory: /mnt/e/Media Library/Music
+library: /mnt/e/Media Library/Data/musiclibrary.db
+import:
+#  incremental: yes
+#  incremental_skip_later: yes
+  log: beets_import_log.txt
+  #copy: yes
+  move: yes
+  write: yes
+# Convert non-ascii characters to ascii
+asciify_paths: yes
+per_disc_numbering: yes
+
+# Plugins
+plugins: 
+  - bandcamp
+  - copyartifacts
+  - deezer
+  - discogs
+  - duplicates
+  - embedart
+  - fetchart
+  - fromfilename
+  - inline
+  - importadded
+  - importreplace
+  - musicbrainz
+  - mbsubmit
+  - replaygain
+  - the
+  - titlecase
+  - unimported
+
+musicbrainz:
+  data_source_mismatch_penalty: 0.1
+  genres: yes
+  extra_tags: [catalognum, label, media, year]
+
+discogs:
+  index_tracks: no
+  search_limit: 10
+  data_source_mismatch_penalty: 0.2
+  append_style_genre: True
+
+deezer:
+  data_source_mismatch_penalty: 1.0
+
+bandcamp:
+  art: True
+  data_source_mistmatch_penalty: 1.0
+
+
+# Formatting
+titlecase:
+  replace:
+    - "–": "-"
+    - "…": "..."
+    - "’": "'"
+    - "‘": "'"
+    - "´": "'"
+    - "“": '"'
+    - "”": '"'
+    - "″": '"'
+  all_caps: yes
+  all_lowercase: yes
+  fields: [
+    'album',
+    'albumartist',
+    'albumartist_credit',
+    'albumartists',
+    'albumartists_credit',
+    'artist',
+    'artist_credit',
+    'artists',
+    'artists_credit',
+    'composer',
+    'disctitle',
+    'work',
+    'title'
+  ]
+  separators: ["/", "@", "&"]
+  preserve: [
+    '123mrk',
+    '7G',
+    'ASC', 'ATFC', 'ATB', 'ATC', 'AWB', 'AIFF', 'ABBA', 'AFX',
+    'B So glObal', 'BT', 'CLSM', 'cv313', 'CEP', 'BADBADNOTGOOD',
+    'CD', 'Charli XCX',
+    'Deepchord', 'DiY', 'DRS', 'dRamatic & dbAudio', 'DNA', 'DJ', "D'Angelo", "D'Spyre",
+    'EQD', 'EP', 'easyFun', 'Erika de Casier', 'em:t', 'ESCM',
+    'feat.', 'FAX +49-69/450464', 'Falty DL', 'FabricLive', 'FKA Twigs', 'FBD Project', 'FLAC',
+    'GFOTY', 'BK', 'GTO', 'gecs',
+    'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X',
+    'ICR', 'ISAM',
+    'JAKAZiD',
+    'KH', 'KLF',
+    'LA Synthesis', 'LA Vampires', 'LCD', 'LFO', 'LTJ',
+    'MP3',
+    'r_AW', 'RCA',
+    'USA', 'UK',
+    't:me',
+    'Y2K'
+    ]
+importreplace:
+  replacements:
+# Album & Track Title Replacements
+    - album_fields: title album
+      item_fields: title album
+      replace:
+        # Remove (Original Mix) and variations
+        (?i) ?[\[\(]original( mix)?[\)\]]: ''
+        # Remove (Mix Cut) tag
+        (?i) \- Mix Cut: '' 
+        (?i)\(Mix Cut\): ''
+        # Remove brackets around Untitled
+        (?i)[\[\(](untitled)[\]\)]: '\1'
+        # Artist Replacements
+        'V\.A\.G\.A\.B\.O\.N\.D\.?': 'Vagabond'
+# Genre Replacements
+    - album_fields: genre style
+      item_fields: genre style
+      replace:
+        # Normalize to Drum & Bass
+        (?i)drum ?[a']?[+n&][d']? ?bass: 'Drum & Bass'
+# Label Replacements
+    - album_fields: label
+      item_fields: label
+      replace:
+        Evol Intent Recordings: 'Evol Intent'
+        FAX +49-69/450464: 'Fax +49-69/450464'
+        Never Say Die Records: 'Never Say Die'
+# Artist Replacements
+    - album_fields: artist artist_sort artist_credit artists artists_sort artists_credit albumartist albumartists
+      item_fields: artist artist_sort artist_credit artists artists_sort artists_credit albumartist albumartists
+      replace:
+        # Expand 'ft' to 'feat.'
+        (?i)ft\.: 'feat.'
+        '竹内まりや': 'Mariya Takeuchi'
+        'A\.T\.F\.C\.?': 'ATFC'
+        'Bad Company UK|ƆƐI3C': 'Bad Company'
+        '^DJ Rum': 'Djrum'
+        "D(-|')Spyre": "D'Spyre"
+        'Daniele Mana': 'Mana'
+        'Fantastic Mr Fox': 'Fantastic Mr. Fox'
+        'Falty DL': 'FaltyDL'
+        '(?i)flow? ?dan': 'Flowdan'
+        '(?i)Lab-?4': 'Lab 4'
+        'MC Conrad and DRS': 'MC Conrad & DRS'
+        'Merwyn Sanders': 'Merle'
+        'Move D [/•&] (Pete )?Namlook': 'Move D & Namlook'
+        '(?i)POB': 'Pob'
+        'Sway Dasafo': 'Sway'
+        'V\.A\.G\.A\.B\.O\.N\.D\.?': 'Vagabond'
+# Media Replacements
+    - album_fields: media
+      item_fields: media
+      replace:
+        File: Digital Media
+        All Media: Digital Media
+        Copy Control CD: CD
+
+# Set the preffered media to match
+match:
+  max_rec:
+    missing_tracks: low
+    unmatched_tracks: low
+  preferred:
+    original_year: yes
+    countries: ['UK|GB', 'US|USA & Canada|United States', 'Netherlands|NL', 'Germany|DE', 'Japan|JP']
+    media: ['CD', 'Digital Media|File']
+  ignored_media: ['Data CD', 'Video', 'DVD', 'DVD-Video', 'Blu-ray', 'DTS CD']
+  distance_weights:
+    track_length: 3.0
+    track_index: 2.0
+    unmatched_tracks: 5.0
+    # data_source: 0.5
+  track_length_grace: 5
+
+# Path and file management
+unimported:
+  ignore_extensions: jpg png cue txt m3u nfo
+
+# https://github.com/adammillerio/beets-copyartifacts
+copyartifacts:
+  extensions: .cue .log .yaml .m3u
+
+album_fields:
+# Create the [FLAC 16-44] string and similar.
+  quality: |
+    qual = ""
+    if len(set([item.format for item in items])) != 1 or len(set([item.bitdepth for item in items])) != 1 or len(set([item.samplerate for item in items])) != 1:
+      qual += "[MUTT]"
+    i = items[0]
+    if i.format == "MP3":
+      qual += f"[MP3 {i.bitrate // 1000}]"
+    else:
+      qual += f"[{i.format} {i.bitdepth}-{i.samplerate // 1000}]"
+    return qual
+# Release info gives (1990, Label CATALOGNUM)
+  release_info: |
+    item = items[0]
+    info = ""
+    added_year = False
+    if item.original_year or item.year:
+      if item.original_year:
+        info += str(item.original_year)
+      else:
+        info += str(item.year)
+      added_year = True
+    if item.catalognum or item.label:
+      if added_year:
+        info += ", "
+      if item.label:
+        info += item.label
+      if item.catalognum:
+        if item.label:
+          info += " "
+        info += item.catalognum
+    if info:
+      info = "(" + info + ")"
+    return info
+# 01 or 1-01 for index
+item_fields:
+  track_no: f"{disc}-{track:02d}" if disctotal > 1 else f"{track:02d}"
+
+
+paths:
+# Vinyl Rips/s/Secret, The/Hold Me!!! Do No Wrong!!! (1999, Secret Records SECT 10) [FLAC 24-44]/01 - The Secret - Hold Me!!!.flac
+  vinyl_rip:1: Vinyl Rips/%lower{%left{%the{$albumartist}, 1}}/%the{$albumartist}/$album $release_info $quality/$track_no - $artist - $title
+# Digital/p/Pete Namlook/4 Voice II (1998, Fax +49-69_450464) [FLAC 16-44]/05 - Pete Namlook - Cave of Ancient Dreams.flac
+  default: Digital/%lower{%left{%the{$albumartist}, 1}}/%the{$albumartist}/$album $release_info $quality/$track_no - $artist - $title
+# Digital/v/Various Artists/Likemind 04 (1996, LIkemind LM-4) [FLAC 16-44]/01 - Nuron - Slipstream.flac
+  comp: Digital/%lower{%left{%the{$albumartist}, 1}}/%the{$albumartist}/$album $release_info $quality/$track_no - $artist - $title
+  ext:log: $albumpath/$artist - $album
+  ext:cue: $albumpath/$artist - $album
+  ext:m3u: $albumpath/$artist - $album
+
+fetchart:
+  sources:
+    - filesystem
+    - cover_art_url
+    - coverart: release
+    - coverart: releasegroup
+  maxwidth: 1200
+
+
+replaygain:
+  threads: 8
+  overwrite: no
+  backend: ffmpeg
